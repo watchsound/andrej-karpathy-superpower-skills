@@ -5,6 +5,14 @@ description: Use when facing 2+ independent tasks that can be worked on without 
 
 # Dispatching Parallel Agents
 
+## Karpathy Reinforcement
+
+When dispatching subagents, also apply:
+- **Think Before Coding** (Karpathy rule 1) — state your assumptions about each agent's scope explicitly in its prompt; do not assume the agent will infer constraints you left out.
+- **Goal-Driven Execution** (Karpathy rule 4) — every dispatched agent must receive a verifiable success criterion, not a vague "look into X."
+
+Full text: see the `karpathy-guidelines` skill.
+
 ## Overview
 
 You delegate tasks to specialized agents with isolated context. By precisely crafting their instructions and context, you ensure they stay focused and succeed at their task. They should never inherit your session's context or history — you construct exactly what they need. This also preserves your own context for coordination work.

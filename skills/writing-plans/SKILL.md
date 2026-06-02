@@ -5,6 +5,14 @@ description: Use when you have a spec or requirements for a multi-step task, bef
 
 # Writing Plans
 
+## Karpathy Reinforcement
+
+While writing this plan, also apply:
+- **Think Before Coding** (Karpathy rule 1) — surface assumptions about scope, constraints, and intent in the plan itself; ambiguity left in the plan becomes ambiguity in execution.
+- **Goal-Driven Execution** (Karpathy rule 4) — each plan step must carry a verifiable check, not just a description of the action.
+
+Full text: see the `karpathy-guidelines` skill.
+
 ## Overview
 
 Write comprehensive implementation plans assuming the engineer has zero context for our codebase and questionable taste. Document everything they need to know: which files to touch for each task, code, testing, docs they might need to check, how to test it. Give them the whole plan as bite-sized tasks. DRY. YAGNI. TDD. Frequent commits.

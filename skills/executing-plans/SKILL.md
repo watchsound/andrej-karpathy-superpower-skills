@@ -5,6 +5,28 @@ description: Use when you have a written implementation plan to execute in a sep
 
 # Executing Plans
 
+## Karpathy Reinforcement
+
+While executing this plan, also apply:
+- **Simplicity First** (Karpathy rule 2) — implement the minimum that satisfies each plan item; no features beyond what the plan calls for.
+- **Surgical Changes** (Karpathy rule 3) — every edited line must trace to a plan item; no drive-by refactoring of adjacent code.
+- **Goal-Driven Execution** (Karpathy rule 4) — run each step's verification before moving on; don't batch verifications at the end.
+- **Consult the glossary** — before introducing a name in code, check `CONTEXT.md`. If the term isn't there and is domain-specific, surface it back to brainstorming rather than naming silently.
+
+Full text: see the `karpathy-guidelines` skill.
+
+## Checkpoint Discipline
+
+After each plan step, write a short checkpoint before moving to the next:
+
+- **Done:** what edits / state changes this step actually produced
+- **Verified:** which checks passed (with the command + observed output)
+- **Remaining:** the next concrete step
+
+If you cannot write the checkpoint in 4 lines, you are not at a checkpoint — stop and reconstruct your state before continuing. Never start step N+1 from a state you cannot recount to yourself.
+
+See also: `token-budget-discipline` for when to checkpoint mid-step.
+
 ## Overview
 
 Load plan, review critically, execute all tasks, report when complete.

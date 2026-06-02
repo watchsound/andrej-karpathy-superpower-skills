@@ -5,6 +5,15 @@ description: Use when receiving code review feedback, before implementing sugges
 
 # Code Review Reception
 
+## Karpathy Reinforcement
+
+When applying review feedback, also apply:
+- **Simplicity First** (Karpathy rule 2) — implement the minimum fix the comment requires; do not redesign the surrounding code.
+- **Surgical Changes** (Karpathy rule 3) — touch only the lines the comment is about; resist the temptation to "improve" adjacent code while you're already in the file.
+- **Defer to the glossary** — if a reviewer questions a name, the source of truth is `CONTEXT.md`, not the reviewer's preference or your own.
+
+Full text: see the `karpathy-guidelines` skill.
+
 ## Overview
 
 Code review requires technical evaluation, not emotional performance.

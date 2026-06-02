@@ -5,6 +5,15 @@ description: Use when creating new skills, editing existing skills, or verifying
 
 # Writing Skills
 
+## Karpathy Reinforcement
+
+While authoring a skill, also apply:
+- **Think Before Coding** (Karpathy rule 1) — state which specific agent failure mode this skill is meant to fix. A skill with unstated motivation drifts.
+- **Simplicity First** (Karpathy rule 2) — write the minimum doc that changes behavior; no speculative sections, no patterns you haven't observed in real sessions.
+- **Goal-Driven Execution** (Karpathy rule 4) — the skill is "done" when the baseline pressure scenario flips from failing to passing, not when the doc reads nicely.
+
+Full text: see the `karpathy-guidelines` skill.
+
 ## Overview
 
 **Writing skills IS Test-Driven Development applied to process documentation.**

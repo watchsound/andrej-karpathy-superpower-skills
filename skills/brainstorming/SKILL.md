@@ -5,6 +5,32 @@ description: "You MUST use this before any creative work - creating features, bu
 
 # Brainstorming Ideas Into Designs
 
+## Karpathy Reinforcement
+
+While brainstorming, also apply:
+- **Think Before Coding** (Karpathy rule 1) — surface every assumption about scope, constraints, and intent; if multiple interpretations exist, present them rather than pick silently.
+- **Goal-Driven Execution** (Karpathy rule 4) — the design must produce verifiable success criteria, not vague intent.
+
+Full text: see the `karpathy-guidelines` skill.
+
+## Ubiquitous Language
+
+A project's vocabulary is its most load-bearing artifact for preventing semantic drift. Every brainstorming session must read it, refine it, and write back to it.
+
+**At session start:** Read `CONTEXT.md` at project root (or `CONTEXT-MAP.md` if multi-context). If neither exists, you will create `CONTEXT.md` lazily — the first time a term needs to be persisted.
+
+**During the session:**
+- When the user uses a fuzzy or overloaded term ("account", "user", "order"), stop and disambiguate. Propose a canonical name and ask which concept they mean.
+- When a term conflicts with an existing `CONTEXT.md` definition, surface it: "Your glossary says X means Y, but you seem to mean Z. Which is it?"
+- When a term is resolved, update `CONTEXT.md` **inline** — don't batch. Use the format in `references/context-format.md`.
+- Refuse technical jargon (`Manager`, `Processor`, `Helper`, `Utils`, `DataXxx`) when a domain term exists. If no domain term exists, the concept itself may be wrong — stop and ask.
+
+**Multi-context projects:** If the same word means different things in different parts of the codebase (e.g., "Order" in trading vs "Order" in billing), create `CONTEXT-MAP.md` at the root and a separate `CONTEXT.md` per bounded context. See `references/context-format.md` for layout.
+
+**`CONTEXT.md` is a glossary, not a spec.** No implementation details. No scratch notes. Just canonical terms with one-or-two-sentence definitions and the variants to avoid.
+
+Format reference: [references/context-format.md](references/context-format.md)
+
 Help turn ideas into fully formed designs and specs through natural collaborative dialogue.
 
 Start by understanding the current project context, then ask questions one at a time to refine the idea. Once you understand what you're building, present the design and get user approval.
@@ -22,14 +48,15 @@ Every project goes through this process. A todo list, a single-function utility,
 You MUST create a task for each of these items and complete them in order:
 
 1. **Explore project context** — check files, docs, recent commits
-2. **Offer visual companion** (if topic will involve visual questions) — this is its own message, not combined with a clarifying question. See the Visual Companion section below.
-3. **Ask clarifying questions** — one at a time, understand purpose/constraints/success criteria
-4. **Propose 2-3 approaches** — with trade-offs and your recommendation
-5. **Present design** — in sections scaled to their complexity, get user approval after each section
-6. **Write design doc** — save to `docs/superpowers/specs/YYYY-MM-DD-<topic>-design.md` and commit
-7. **Spec self-review** — quick inline check for placeholders, contradictions, ambiguity, scope (see below)
-8. **User reviews written spec** — ask user to review the spec file before proceeding
-9. **Transition to implementation** — invoke writing-plans skill to create implementation plan
+2. **Read CONTEXT.md** — load the project glossary at session start; if multi-context, load `CONTEXT-MAP.md` and the relevant per-context glossary
+3. **Offer visual companion** (if topic will involve visual questions) — this is its own message, not combined with a clarifying question. See the Visual Companion section below.
+4. **Ask clarifying questions** — one at a time, understand purpose/constraints/success criteria
+5. **Propose 2-3 approaches** — with trade-offs and your recommendation
+6. **Present design** — in sections scaled to their complexity, get user approval after each section
+7. **Write design doc** — save to `docs/superpowers/specs/YYYY-MM-DD-<topic>-design.md` and commit
+8. **Spec self-review** — quick inline check for placeholders, contradictions, ambiguity, scope (see below)
+9. **User reviews written spec** — ask user to review the spec file before proceeding
+10. **Transition to implementation** — invoke writing-plans skill to create implementation plan
 
 ## Process Flow
 

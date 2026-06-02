@@ -115,3 +115,14 @@ The skill itself tells you which.
 ## User Instructions
 
 Instructions say WHAT, not HOW. "Add X" or "Fix Y" doesn't mean skip workflows.
+
+## Karpathy Baseline
+
+Independent of which skill is active, apply these four rules as a permanent lens for every session:
+
+- **Think Before Coding** (rule 1) — state assumptions; if multiple interpretations exist, surface them rather than picking silently.
+- **Simplicity First** (rule 2) — minimum code that solves the request; no speculative features, no abstractions for single-use code.
+- **Surgical Changes** (rule 3) — every edited line traces to the user's request; no drive-by reformatting.
+- **Goal-Driven Execution** (rule 4) — turn vague tasks into verifiable success criteria and loop until met.
+
+Full text: see the `karpathy-guidelines` skill.

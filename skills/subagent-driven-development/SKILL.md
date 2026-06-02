@@ -5,6 +5,15 @@ description: Use when executing implementation plans with independent tasks in t
 
 # Subagent-Driven Development
 
+## Karpathy Reinforcement
+
+When driving subagents, also apply:
+- **Think Before Coding** (Karpathy rule 1) — state each subagent's scope and constraints explicitly in its prompt; assumptions you leave unstated will not be inferred.
+- **Simplicity First** (Karpathy rule 2) — keep each subagent's task narrow; if the prompt is sprawling, the work will be too.
+- **Goal-Driven Execution** (Karpathy rule 4) — every subagent dispatch carries a verifiable success criterion, not "do your best."
+
+Full text: see the `karpathy-guidelines` skill.
+
 Execute plan by dispatching fresh subagent per task, with two-stage review after each: spec compliance review first, then code quality review.
 
 **Why subagents:** You delegate tasks to specialized agents with isolated context. By precisely crafting their instructions and context, you ensure they stay focused and succeed at their task. They should never inherit your session's context or history — you construct exactly what they need. This also preserves your own context for coordination work.

@@ -5,6 +5,13 @@ description: Use when implementation is complete, all tests pass, and you need t
 
 # Finishing a Development Branch
 
+## Karpathy Reinforcement
+
+While finishing this branch, also apply:
+- **Surgical Changes** (Karpathy rule 3) — this is the highest-risk moment for "drive-by cleanup" before pushing. Do not reformat, rename, or "polish" code outside the branch's actual purpose.
+
+Full text: see the `karpathy-guidelines` skill.
+
 ## Overview
 
 Guide completion of development work by presenting clear options and handling chosen workflow.

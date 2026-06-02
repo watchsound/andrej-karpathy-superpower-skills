@@ -5,6 +5,13 @@ description: Use when about to claim work is complete, fixed, or passing, before
 
 # Verification Before Completion
 
+## Karpathy Reinforcement
+
+When verifying completion, also apply:
+- **Goal-Driven Execution** (Karpathy rule 4) — "done" is defined by a verifiable command's output, not by your sense that it should work. Run the command; read the output; only then claim completion.
+
+Full text: see the `karpathy-guidelines` skill.
+
 ## Overview
 
 Claiming work is complete without verification is dishonesty, not efficiency.

@@ -5,6 +5,24 @@ description: Use when implementing any feature or bugfix, before writing impleme
 
 # Test-Driven Development (TDD)
 
+## Karpathy Reinforcement
+
+While running the TDD cycle, also apply:
+- **Simplicity First** (Karpathy rule 2) — GREEN means the *minimum* code that makes the test pass. If your GREEN step grew speculative features, delete and restart.
+- **Surgical Changes** (Karpathy rule 3) — during RED-GREEN, do not touch unrelated code. Save broader cleanup for an explicit refactor pass with green tests.
+- **Goal-Driven Execution** (Karpathy rule 4) — TDD *is* goal-driven execution: the failing test is the success criterion. Loop until it goes green.
+
+Full text: see the `karpathy-guidelines` skill.
+
+## Test Quality Bar
+
+A test must encode *why* the behavior matters, not just *that* the function returned something. If the test would still pass when a developer replaces the function body with `return <hardcoded value>`, the test is worthless — delete it and write a real one.
+
+Checklist before accepting a green test:
+- Does the assertion depend on the input, not on a constant?
+- Does the test fail if the business rule changes?
+- Could a buggy implementation that swallows errors still pass it? If yes, the test is shallow.
+
 ## Overview
 
 Write the test first. Watch it fail. Write minimal code to pass.

@@ -5,6 +5,16 @@ description: Use when encountering any bug, test failure, or unexpected behavior
 
 # Systematic Debugging
 
+## Karpathy Reinforcement
+
+While debugging, also apply:
+- **Think Before Coding** (Karpathy rule 1) — name what you don't yet understand instead of guessing at the cause; a stated hypothesis beats a silent assumption.
+- **Surgical Changes** (Karpathy rule 3) — once the root cause is found, fix only that. Resist "while I'm here" cleanup of adjacent code.
+- **Goal-Driven Execution** (Karpathy rule 4) — reproduce the bug with a failing test before fixing; the test is the success criterion.
+- **Disambiguate before diagnosing** — if a bug report uses an ambiguous term, resolve it via `CONTEXT.md` before forming hypotheses; a wrong term equals a wrong diagnosis.
+
+Full text: see the `karpathy-guidelines` skill.
+
 ## Overview
 
 Random fixes waste time and create new bugs. Quick patches mask underlying issues.

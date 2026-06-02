@@ -5,6 +5,13 @@ description: Use when completing tasks, implementing major features, or before m
 
 # Requesting Code Review
 
+## Karpathy Reinforcement
+
+When framing the review request, also apply:
+- **Think Before Coding** (Karpathy rule 1) — make the reviewer's assumptions explicit: what scope, what constraints, what success looks like. A vague request invites vague review.
+
+Full text: see the `karpathy-guidelines` skill.
+
 Dispatch a code reviewer subagent to catch issues before they cascade. The reviewer gets precisely crafted context for evaluation — never your session's history. This keeps the reviewer focused on the work product, not your thought process, and preserves your own context for continued work.
 
 **Core principle:** Review early, review often.
