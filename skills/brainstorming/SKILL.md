@@ -31,6 +31,27 @@ A project's vocabulary is its most load-bearing artifact for preventing semantic
 
 Format reference: [references/context-format.md](references/context-format.md)
 
+## Walking Skeleton (Greenfield Only)
+
+When the design is for a **new system or service** — not a feature added to an existing codebase — the first design deliverable is a **Walking Skeleton**: an end-to-end thin slice that proves the architecture is wired up before any business logic is designed.
+
+A Walking Skeleton:
+- Runs one happy-path request through every layer (UI → API → domain → persistence → response).
+- Contains zero business logic — every layer returns a hardcoded or trivial value.
+- Is testable end-to-end (one acceptance test: "request comes in, response goes out").
+- Forces every architectural decision (framework, persistence, deployment shape, auth boundary) to be made and validated *before* feature work begins.
+
+**Why it matters here:** It prevents the failure mode where 100 perfectly-tested components fail to compose into a working system. The skeleton is the architectural contract that every subsequent feature has to fit into.
+
+**Don't apply this when:** the work is a feature added to an existing system, a bug fix, or a refactor. Those already have a skeleton — yours is whatever the codebase is today.
+
+If a Walking Skeleton is appropriate, the design output should include:
+- The end-to-end happy path (sequence diagram or numbered steps)
+- The seam at each layer (interface/abstract class/schema) — concrete enough to compile or type-check
+- The one acceptance test that proves the wiring
+
+Subsequent feature design then plugs into these seams rather than inventing new ones.
+
 Help turn ideas into fully formed designs and specs through natural collaborative dialogue.
 
 Start by understanding the current project context, then ask questions one at a time to refine the idea. Once you understand what you're building, present the design and get user approval.

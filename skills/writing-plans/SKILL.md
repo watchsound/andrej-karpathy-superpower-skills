@@ -30,6 +30,20 @@ Assume they are a skilled developer, but know almost nothing about our toolset o
 
 If the spec covers multiple independent subsystems, it should have been broken into sub-project specs during brainstorming. If it wasn't, suggest breaking this into separate plans — one per subsystem. Each plan should produce working, testable software on its own.
 
+## Architecture Contracts First
+
+For each new module, service, or boundary the plan introduces, **the first task is defining the interface, not implementing it**. The interface (TypeScript type, abstract class, dataclass, schema, protobuf definition — whatever the language uses for "shape without behavior") is the unbreakable contract that every subsequent task fulfills.
+
+Concretely, before any implementation task for a new component:
+
+1. **Task 1: Define the contract.** Write the type/interface/schema, with field types, method signatures, and return types fully specified. No implementation. Verify by type-check or compile, not by running.
+2. **Task 2: Write the boundary test.** A failing test that exercises the component through its public interface only (no internal access). Verify it fails because the implementation doesn't exist yet.
+3. **Task 3+: Implement under TDD** to satisfy the contract.
+
+Why this order: it forces the architecture (the shape and seams) to be committed to *before* TDD runs. TDD then operates as a worker fulfilling an already-defined contract, rather than as a designer inventing one bottom-up.
+
+**Exception:** purely internal helpers that the plan adds only to support a single component don't need their own contract task — the parent component's interface covers them.
+
 ## File Structure
 
 Before defining tasks, map out which files will be created or modified and what each one is responsible for. This is where decomposition decisions get locked in.
