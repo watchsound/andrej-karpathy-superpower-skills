@@ -42,6 +42,18 @@ Format reference adapted from `mattpocock/skills/grill-with-docs/CONTEXT-FORMAT.
 - **Test Quality Bar** in `test-driven-development` — every test must encode *why* the behavior matters, not just *that* the function returned something. A green test that would still pass if the function body were replaced with `return <constant>` is worthless.
 - **Checkpoint Discipline** in `executing-plans` — after each plan step, write a 4-line summary (done / verified / remaining) before continuing. Never start step N+1 from a state you cannot recount to yourself.
 
+### Architecture-Driven TDD harness (3 skills extended)
+
+A separate failure mode from semantic drift: bottom-up TDD can produce 100 perfectly-tested units that compose into a bad architecture. This fork harnesses TDD within an Architecture-Driven Design pipeline — architecture is the boss, TDD is the worker. The discipline is spread across the three skills that own each stage, not stuffed into TDD alone.
+
+- **`brainstorming` gained a Walking Skeleton subsection** — for greenfield work, the first design deliverable is an end-to-end thin slice with zero business logic, proving every layer is wired before any feature is designed.
+- **`writing-plans` gained an Architecture Contracts First section** — for each new module or boundary, Task 1 defines the interface (type/abstract/schema), Task 2 writes the boundary test, Task 3+ implements under TDD.
+- **`test-driven-development` gained four sections** after Test Quality Bar:
+  - *Where to Start the Cycle* — outside-in ordering (target the architectural boundary, not the leaf utility) **without** London-school heavy mocking.
+  - *Behavior, Not Implementation* — forbid call-count spies and private-field assertions; allow side-effect contracts when the side effect *is* the behavior; mutation thinking as the green-test verifier.
+  - *Test Organization & Traceability* — colocate test files with sources, name tests using `CONTEXT.md` canonical terms, tag by bounded context, run related-tests during iteration (`jest --findRelatedTests`, `pytest -k`, `nx affected:test`) and the full suite at the completion gate.
+  - *Layered Tests* — domain/unit (fast, most of the suite) vs integration (slow, thin smoke layer); needing 5+ mocks signals a design problem, not a test problem.
+
 ### `CLAUDE_APPEND.md` (personal engineering standard)
 
 A short add-on for your project-level or user-global `CLAUDE.md` that introduces a **mandatory response format** for any code-modifying response:
@@ -81,6 +93,7 @@ Expected behavior:
 - The Ubiquitous Language block surfaces — the agent looks for `CONTEXT.md` and proposes creating one if absent.
 - The agent asks to disambiguate "order" (trading order vs purchase order vs work order) before proposing any design.
 - The four Karpathy rules are surfaced as the lens for the rest of the conversation.
+- Because the order book is a greenfield system, the agent offers a **Walking Skeleton** as the first design deliverable — an end-to-end thin slice with no business logic, before any feature design.
 
 If none of that happens, the plugin's SessionStart hook didn't fire — restart Claude Code or confirm `/plugin list` shows the fork.
 
