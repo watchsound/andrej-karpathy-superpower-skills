@@ -1,233 +1,100 @@
-# Superpowers
+# Andrej Karpathy × Superpowers Skills
 
-Superpowers is a complete software development methodology for your coding agents, built on top of a set of composable skills and some initial instructions that make sure your agent uses them.
+A personal fork of [obra/superpowers](https://github.com/obra/superpowers) that bakes Andrej Karpathy's anti-LLM-slop principles into each skill, adds a runtime ubiquitous-language ritual to prevent semantic drift, and introduces a small number of new skills for failure modes that show up in long-running agent work.
 
-## Quickstart
+> **This is a personal fork**, not affiliated with the upstream maintainers. Changes here may diverge from upstream design decisions and have not been adversarially eval'd to the upstream's bar. For the canonical project, see [obra/superpowers](https://github.com/obra/superpowers) and [README_ORIGINAL.md](./README_ORIGINAL.md).
 
-Give your agent Superpowers: [Claude Code](#claude-code), [Codex CLI](#codex-cli), [Codex App](#codex-app), [Factory Droid](#factory-droid), [Gemini CLI](#gemini-cli), [OpenCode](#opencode), [Cursor](#cursor), [GitHub Copilot CLI](#github-copilot-cli).
+## Motivation
 
-## How it works
+Superpowers gives agents disciplined workflows (TDD, brainstorming, systematic debugging, plan-driven execution). What it doesn't yet encode is the *moment-to-moment* failure modes [Karpathy described in January 2026](https://x.com/karpathy/status/2015883857489522876):
 
-It starts from the moment you fire up your coding agent. As soon as it sees that you're building something, it *doesn't* just jump into trying to write code. Instead, it steps back and asks you what you're really trying to do. 
+> "The models make wrong assumptions on your behalf and just run along with them without checking. They don't manage their confusion, don't seek clarifications, don't surface inconsistencies, don't present tradeoffs, don't push back when they should. They really like to overcomplicate code and APIs, bloat abstractions..."
 
-Once it's teased a spec out of the conversation, it shows it to you in chunks short enough to actually read and digest. 
+[Forrest Chang's distillation](https://github.com/forrestchang/andrej-karpathy-skills) of those observations into four rules — *think before coding, simplicity first, surgical changes, goal-driven execution* — works as a CLAUDE.md preamble. But a preamble competes with skill content for attention budget, and it doesn't fire at the moment a specific skill is running.
 
-After you've signed off on the design, your agent puts together an implementation plan that's clear enough for an enthusiastic junior engineer with poor taste, no judgement, no project context, and an aversion to testing to follow. It emphasizes true red/green TDD, YAGNI (You Aren't Gonna Need It), and DRY. 
+**This fork bakes the four rules into each skill's body**, so the discipline is invoked exactly when the skill fires. It also adds a small set of rules targeting agent-loop failure modes (token budgets, deterministic-code boundary, test quality, checkpoint discipline) and a runtime-built glossary mechanism adapted from [mattpocock/skills](https://github.com/mattpocock/skills) to prevent semantic drift across long sessions.
 
-Next up, once you say "go", it launches a *subagent-driven-development* process, having agents work through each engineering task, inspecting and reviewing their work, and continuing forward. It's not uncommon for Claude to be able to work autonomously for a couple hours at a time without deviating from the plan you put together.
+## What's Added
 
-There's a bunch more to it, but that's the core of the system. And because the skills trigger automatically, you don't need to do anything special. Your coding agent just has Superpowers.
+### Three new skills
 
+- **`karpathy-guidelines`** — verbatim vendor of forrestchang's 4-rule CLAUDE.md (MIT). Loads on demand so the full rule text is available to any skill that cross-references it.
+- **`prefer-deterministic-code`** — refuses to wrap an LLM call around a question with a deterministic answer (routing, retries, status codes, validation, type checks). Reserves LLM calls for unstructured language work only.
+- **`token-budget-discipline`** — explicit per-task and per-session budgets with checkpoint-and-restart discipline, to bound agent loops that would otherwise spend themselves into a 50K-token context dump.
 
-## Sponsorship
+### Karpathy Reinforcement across existing skills (13)
 
-If Superpowers has helped you do stuff that makes money and you are so inclined, I'd greatly appreciate it if you'd consider [sponsoring my opensource work](https://github.com/sponsors/obra).
+Each relevant existing skill gained a small `## Karpathy Reinforcement` block listing only the rules that materially strengthen its behavior. `using-superpowers` gained the full 4-rule baseline as a permanent lens for every session. `using-git-worktrees` (purely mechanical) was deliberately left untouched.
 
-Thanks! 
+### Ubiquitous Language in `brainstorming`
 
-- Jesse
+A new `## Ubiquitous Language` subsection in the `brainstorming` skill:
 
+- Reads `CONTEXT.md` (or `CONTEXT-MAP.md` for multi-context repos) at session start.
+- Disambiguates fuzzy or overloaded terms inline ("you're saying 'order' — trading order, purchase order, or work order?").
+- Refuses technical jargon (`Manager`, `Processor`, `Helper`) when a domain term exists.
+- Writes resolved terms back to the glossary as they emerge, not batched.
+
+Format reference adapted from `mattpocock/skills/grill-with-docs/CONTEXT-FORMAT.md` (MIT). Three downstream skills — `executing-plans`, `receiving-code-review`, `systematic-debugging` — gained one-line cross-references so the vocabulary doesn't get bypassed downstream.
+
+### Inline strengtheners
+
+- **Test Quality Bar** in `test-driven-development` — every test must encode *why* the behavior matters, not just *that* the function returned something. A green test that would still pass if the function body were replaced with `return <constant>` is worthless.
+- **Checkpoint Discipline** in `executing-plans` — after each plan step, write a 4-line summary (done / verified / remaining) before continuing. Never start step N+1 from a state you cannot recount to yourself.
+
+### `CLAUDE_APPEND.md` (personal engineering standard)
+
+A short add-on for your project-level or user-global `CLAUDE.md` that introduces a **mandatory response format** for any code-modifying response:
+
+- `Discovered Issues` — bugs and risks noticed in adjacent code, listed (not fixed) so they can be triaged.
+- `Assumptions Made` — every assumption taken to proceed, with `(critical)` markers on the load-bearing ones.
+
+This turns invisible discipline (the four Karpathy rules) into a visible artifact at the end of every response.
 
 ## Installation
 
-Installation differs by harness. If you use more than one, install Superpowers separately for each one.
+```bash
+# Add the marketplace
+/plugin marketplace add watchsound/andrej-karpathy-superpower-skills
 
-### Claude Code
+# Install
+/plugin install superpowers@superpowers-dev
+```
 
-Superpowers is available via the [official Claude plugin marketplace](https://claude.com/plugins/superpowers)
+If the upstream `superpowers` plugin is already installed, **uninstall it first** to avoid duplicate auto-trigger conflicts:
 
-#### Official Marketplace
+```bash
+/plugin uninstall superpowers
+```
 
-- Install the plugin from Anthropic's official marketplace:
+Restart Claude Code so the SessionStart hook fires and `using-superpowers` bootstraps.
 
-  ```bash
-  /plugin install superpowers@claude-plugins-official
-  ```
+## Verification
 
-#### Superpowers Marketplace
+In a fresh session, send:
 
-The Superpowers marketplace provides Superpowers and some other related plugins for Claude Code.
+> "Let's design a small order book for an A-share trading system."
 
-- Register the marketplace:
+Expected behavior:
 
-  ```bash
-  /plugin marketplace add obra/superpowers-marketplace
-  ```
+- `brainstorming` fires (not direct code generation).
+- The Ubiquitous Language block surfaces — the agent looks for `CONTEXT.md` and proposes creating one if absent.
+- The agent asks to disambiguate "order" (trading order vs purchase order vs work order) before proposing any design.
+- The four Karpathy rules are surfaced as the lens for the rest of the conversation.
 
-- Install the plugin from this marketplace:
+If none of that happens, the plugin's SessionStart hook didn't fire — restart Claude Code or confirm `/plugin list` shows the fork.
 
-  ```bash
-  /plugin install superpowers@superpowers-marketplace
-  ```
+## Attribution
 
-### Codex CLI
+- Original **Superpowers** project: [Jesse Vincent](https://blog.fsck.com) and Prime Radiant — [obra/superpowers](https://github.com/obra/superpowers).
+- **Karpathy guidelines** distillation: [Forrest Chang](https://github.com/forrestchang/andrej-karpathy-skills).
+- **CONTEXT.md format and ritual**: [Matt Pocock](https://github.com/mattpocock/skills).
+- Original **Karpathy observations** on LLM coding pitfalls: [@karpathy on X](https://x.com/karpathy/status/2015883857489522876).
 
-Superpowers is available via the [official Codex plugin marketplace](https://github.com/openai/plugins).
+All upstream content is MIT-licensed; attribution is preserved in vendored files.
 
-- Open the plugin search interface:
-
-  ```bash
-  /plugins
-  ```
-
-- Search for Superpowers:
-
-  ```bash
-  superpowers
-  ```
-
-- Select `Install Plugin`.
-
-### Codex App
-
-Superpowers is available via the [official Codex plugin marketplace](https://github.com/openai/plugins).
-
-- In the Codex app, click on Plugins in the sidebar.
-- You should see `Superpowers` in the Coding section.
-- Click the `+` next to Superpowers and follow the prompts.
-
-### Factory Droid
-
-- Register the marketplace:
-
-  ```bash
-  droid plugin marketplace add https://github.com/obra/superpowers
-  ```
-
-- Install the plugin:
-
-  ```bash
-  droid plugin install superpowers@superpowers
-  ```
-
-### Gemini CLI
-
-- Install the extension:
-
-  ```bash
-  gemini extensions install https://github.com/obra/superpowers
-  ```
-
-- Update later:
-
-  ```bash
-  gemini extensions update superpowers
-  ```
-
-### OpenCode
-
-OpenCode uses its own plugin install; install Superpowers separately even if you
-already use it in another harness.
-
-- Tell OpenCode:
-
-  ```
-  Fetch and follow instructions from https://raw.githubusercontent.com/obra/superpowers/refs/heads/main/.opencode/INSTALL.md
-  ```
-
-- Detailed docs: [docs/README.opencode.md](docs/README.opencode.md)
-
-### Cursor
-
-- In Cursor Agent chat, install from marketplace:
-
-  ```text
-  /add-plugin superpowers
-  ```
-
-- Or search for "superpowers" in the plugin marketplace.
-
-### GitHub Copilot CLI
-
-- Register the marketplace:
-
-  ```bash
-  copilot plugin marketplace add obra/superpowers-marketplace
-  ```
-
-- Install the plugin:
-
-  ```bash
-  copilot plugin install superpowers@superpowers-marketplace
-  ```
-
-## The Basic Workflow
-
-1. **brainstorming** - Activates before writing code. Refines rough ideas through questions, explores alternatives, presents design in sections for validation. Saves design document.
-
-2. **using-git-worktrees** - Activates after design approval. Creates isolated workspace on new branch, runs project setup, verifies clean test baseline.
-
-3. **writing-plans** - Activates with approved design. Breaks work into bite-sized tasks (2-5 minutes each). Every task has exact file paths, complete code, verification steps.
-
-4. **subagent-driven-development** or **executing-plans** - Activates with plan. Dispatches fresh subagent per task with two-stage review (spec compliance, then code quality), or executes in batches with human checkpoints.
-
-5. **test-driven-development** - Activates during implementation. Enforces RED-GREEN-REFACTOR: write failing test, watch it fail, write minimal code, watch it pass, commit. Deletes code written before tests.
-
-6. **requesting-code-review** - Activates between tasks. Reviews against plan, reports issues by severity. Critical issues block progress.
-
-7. **finishing-a-development-branch** - Activates when tasks complete. Verifies tests, presents options (merge/PR/keep/discard), cleans up worktree.
-
-**The agent checks for relevant skills before any task.** Mandatory workflows, not suggestions.
-
-## What's Inside
-
-### Skills Library
-
-**Testing**
-- **test-driven-development** - RED-GREEN-REFACTOR cycle (includes testing anti-patterns reference)
-
-**Debugging**
-- **systematic-debugging** - 4-phase root cause process (includes root-cause-tracing, defense-in-depth, condition-based-waiting techniques)
-- **verification-before-completion** - Ensure it's actually fixed
-
-**Collaboration** 
-- **brainstorming** - Socratic design refinement
-- **writing-plans** - Detailed implementation plans
-- **executing-plans** - Batch execution with checkpoints
-- **dispatching-parallel-agents** - Concurrent subagent workflows
-- **requesting-code-review** - Pre-review checklist
-- **receiving-code-review** - Responding to feedback
-- **using-git-worktrees** - Parallel development branches
-- **finishing-a-development-branch** - Merge/PR decision workflow
-- **subagent-driven-development** - Fast iteration with two-stage review (spec compliance, then code quality)
-
-**Meta**
-- **writing-skills** - Create new skills following best practices (includes testing methodology)
-- **using-superpowers** - Introduction to the skills system
-
-## Philosophy
-
-- **Test-Driven Development** - Write tests first, always
-- **Systematic over ad-hoc** - Process over guessing
-- **Complexity reduction** - Simplicity as primary goal
-- **Evidence over claims** - Verify before declaring success
-
-Read [the original release announcement](https://blog.fsck.com/2025/10/09/superpowers/).
-
-## Contributing
-
-The general contribution process for Superpowers is below. Keep in mind that we don't generally accept contributions of new skills and that any updates to skills must work across all of the coding agents we support.
-
-1. Fork the repository
-2. Switch to the 'dev' branch
-3. Create a branch for your work
-4. Follow the `writing-skills` skill for creating and testing new and modified skills
-5. Submit a PR, being sure to fill in the pull request template.
-
-See `skills/writing-skills/SKILL.md` for the complete guide.
-
-## Updating
-
-Superpowers updates are somewhat coding-agent dependent, but are often automatic.
+For the full upstream documentation, philosophy section, and per-harness install instructions (Codex CLI, Gemini CLI, OpenCode, Cursor, GitHub Copilot CLI, Factory Droid), see [README_ORIGINAL.md](./README_ORIGINAL.md).
 
 ## License
 
-MIT License - see LICENSE file for details
-
-## Community
-
-Superpowers is built by [Jesse Vincent](https://blog.fsck.com) and the rest of the folks at [Prime Radiant](https://primeradiant.com).
-
-- **Discord**: [Join us](https://discord.gg/35wsABTejz) for community support, questions, and sharing what you're building with Superpowers
-- **Issues**: https://github.com/obra/superpowers/issues
-- **Release announcements**: [Sign up](https://primeradiant.com/superpowers/) to get notified about new versions
+MIT — see [LICENSE](./LICENSE). All vendored content retains its original MIT terms and attribution.
