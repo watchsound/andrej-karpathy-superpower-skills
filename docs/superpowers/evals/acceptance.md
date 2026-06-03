@@ -200,7 +200,23 @@ being asserted, so a failure tells you what broke without reading the body.
 
 **Finding: description coverage gap.** The skill's description is *"Use when implementing any feature or bugfix, before writing implementation code."* A *review* question ("Is this test good enough?") doesn't match the trigger semantically, even though the skill body has a Test Quality Bar section explicitly designed for review. Consider broadening the description to include review use cases — e.g., "Use when implementing any feature or bugfix, or when reviewing existing tests for quality."
 
-**Verdict:** PASS on content quality. Soft-miss on announcement. The skill content fires behaviorally — the description trigger may not.
+**Run 1 verdict:** PASS on content quality. Soft-miss on announcement. The skill content fires behaviorally — the description trigger may not.
+
+---
+
+### Run 2 (2026-06-03, after description broadening, fresh session)
+
+Skill description updated to include OR-clause: *"...OR when reviewing tests for quality, coverage gaps, or shallowness (e.g. 'is this test good enough?', 'should I add more tests?', 'this test passes but feels weak')."*
+
+**Both new improvements visible:**
+
+- Announcement chain present: `using-superpowers skill` + `test-driven-development skill` announced at top (Run 1 was silent)
+- Direct reference to skill content: *"fails the Test Quality Bar checklist"* (Run 1 implicit only)
+- Three mutation cases enumerated (hardcoded return, branch mutation, rate change) — Run 1 had one
+- Strongest analytical move: pinning the multiplier with two premium cases (100→80, 50→40) to distinguish `* 0.8` from `- 20`. This is mutation thinking applied at the rule-vs-coincidence level, not just the assertion level.
+- `Assumptions Made` correctly produced with `(critical)` marker
+
+**Run 2 verdict:** PASS, clean. The description broadening worked end-to-end — skill announces, references its own content by name, and produces a sharper analysis than the silent run. Second validated fix-cycle of the eval (first was Walking Skeleton trigger).
 
 ---
 
