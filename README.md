@@ -14,6 +14,8 @@ Superpowers gives agents disciplined workflows (TDD, brainstorming, systematic d
 
 **This fork bakes the four rules into each skill's body**, so the discipline is invoked exactly when the skill fires. It also adds a small set of rules targeting agent-loop failure modes (token budgets, deterministic-code boundary, test quality, checkpoint discipline) and a runtime-built glossary mechanism adapted from [mattpocock/skills](https://github.com/mattpocock/skills) to prevent semantic drift across long sessions.
 
+A second, independent failure mode motivated this fork: **bottom-up TDD can produce 100 perfectly-tested units that compose into a bad architecture.** The units pass, the seams are wrong, and no red test tells you. Karpathy's rules address how you write code in the moment; they say nothing about whether you're building the right structure. This fork harnesses TDD within an Architecture-Driven Design (ADD) pipeline so architecture remains the boss and TDD is the worker. The discipline is distributed across the three skills that own each stage: `brainstorming` requires a **Walking Skeleton** for greenfield systems — an end-to-end thin slice with no business logic that validates every architectural seam before any feature is designed; `writing-plans` requires **Contract-First** interface definition before any TDD cycle runs, so the shape and boundaries are committed before the worker starts; and `test-driven-development` imposes **outside-in ordering** — the next failing test always targets the highest-uncovered architectural boundary, not the lowest leaf utility — without London-school heavy mocking.
+
 ## What's Added
 
 ### Three new skills
