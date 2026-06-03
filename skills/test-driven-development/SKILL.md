@@ -23,74 +23,7 @@ Checklist before accepting a green test:
 - Does the test fail if the business rule changes?
 - Could a buggy implementation that swallows errors still pass it? If yes, the test is shallow.
 
-## Where to Start the Cycle
-
-The next RED test targets the **highest-uncovered architectural boundary**, not the lowest utility.
-
-If `writing-plans` defined an interface for `OrderBookService.place(order)`, your first test exercises `OrderBookService.place(...)` — not a private helper inside it, not a string-formatting utility two layers down. You drill into helpers *only* when the boundary test forces you to (i.e., it cannot be made to pass without a helper that doesn't yet exist).
-
-This is outside-in *ordering*, not London-school mocking. When you drill into a helper, write it with **real code, not mocks** — the existing TDD rules still apply.
-
-| Question | Answer |
-|---|---|
-| Why start at the boundary? | Boundary tests are inherently behavior-tests; leaf-utility tests are easy to make implementation-coupled. |
-| What if the boundary is huge? | The plan should have decomposed it. If it didn't, raise the gap before writing tests. |
-| Can I mock the layers below the boundary? | Only if the layer is genuinely external (network, filesystem, time). For internal layers, prefer real. |
-
-## Behavior, Not Implementation
-
-A test asserts on **observable outputs and state transitions**, never on internal call shapes.
-
-Forbidden assertion shapes (these test the implementation):
-- `expect(spy).toHaveBeenCalledTimes(N)` (interrogating call counts)
-- `expect(mock.foo).toHaveBeenCalledWith(...)` (interrogating arguments to internals)
-- Reaching into private fields or non-public methods
-- Snapshot-testing internal data structures the caller never sees
-
-Allowed exceptions: when the side effect *is* the contract. A test for "an email gets sent" must assert that `emailGateway.send` was called with the right address — that observable side effect *is* the behavior, not an implementation detail.
-
-The black-box test: if you refactor internals without changing the externally-observable result, **no test should break**. If one does, it was testing implementation.
-
-**Mutation thinking** — before accepting a green test, mentally mutate the source:
-- What if `+` became `-`? `<` became `<=`? `return result` became `return null`?
-- What if errors were swallowed instead of thrown?
-- What if the function returned the input unchanged?
-
-If the test still passes under any of those mutations, write another test. Tools that automate this (Stryker for JS/TS, PIT for Java, Mutmut for Python) are the gold-standard verifier — optional, but worth running when stakes are high.
-
-## Test Organization & Traceability
-
-Tests are structurally aligned with the architecture, not thrown into a global `/tests` folder.
-
-**Colocate** test files immediately adjacent to source unless the project convention says otherwise:
-```
-src/trading/order-book.ts
-src/trading/order-book.test.ts   ← same directory
-```
-This makes the source ↔ test link undeniable and lets `--findRelatedTests`-style tools work.
-
-**Name and group tests using canonical terms from `CONTEXT.md`** (your ubiquitous language glossary). If the canonical term is `Position`, the test file is `position.test.ts` and the top-level `describe` block is `describe('Position', ...)`. This means a domain-grep finds every test for a concept.
-
-**Tag tests by bounded context** so you can run "all tests for the trading context" without grep-fu:
-- Jest: `describe.each` with tag names; or filename convention (`*.trading.test.ts`)
-- Pytest: `@pytest.mark.trading`
-- Most runners support tag/marker filtering at the CLI
-
-**During iteration, run only related tests** — the iteration loop is for fast feedback, not for the completion gate:
-- Jest: `jest --findRelatedTests <changed-file>` or `jest --changedSince=main`
-- Pytest: `pytest -k <pattern>` or `pytest --picked` (plugin)
-- Nx monorepo: `nx affected:test`
-- Fallback: `git diff --name-only` piped into the runner
-
-**Before claiming completion, always run the full suite.** Related-tests is the iteration loop; the full suite is the verification gate (see `verification-before-completion`).
-
-## Layered Tests
-
-Most tests are **domain/unit tests** — pure logic, no I/O, milliseconds to run. They test invariants and state transitions of the domain model.
-
-A thin layer of **integration tests** sits above them — they hit real systems (DB, network, filesystem) and verify the seams between architectural layers. They are slow; keep them as smoke tests, not the main coverage.
-
-If you find yourself mocking five or more dependencies to test one function, the **design** is wrong, not the test. Extract the pure domain logic into a unit that can be tested directly, and leave the integration concerns to the integration layer.
+For architectural and behavioral reinforcement of the RED-GREEN-REFACTOR cycle (outside-in ordering, behavior-not-implementation, organization, layering), see the [Reinforcement](#reinforcement) section at the end of this skill. The Iron Law and Red-Green-Refactor cycle below come first because they are the unconditional foundation; the reinforcement sections sharpen the cycle but never override it.
 
 ## Overview
 
@@ -456,3 +389,78 @@ Otherwise → not TDD
 ```
 
 No exceptions without your human partner's permission.
+
+---
+
+## Reinforcement
+
+The four sections below sharpen the cycle above. They are reinforcement, not replacement — none of them override the Iron Law or the Red Flags above. Read them after you have internalized the cycle.
+
+### Where to Start the Cycle
+
+The next RED test targets the **highest-uncovered architectural boundary**, not the lowest utility.
+
+If `writing-plans` defined an interface for `OrderBookService.place(order)`, your first test exercises `OrderBookService.place(...)` — not a private helper inside it, not a string-formatting utility two layers down. You drill into helpers *only* when the boundary test forces you to (i.e., it cannot be made to pass without a helper that doesn't yet exist).
+
+This is outside-in *ordering*, not London-school mocking. When you drill into a helper, write it with **real code, not mocks** — the existing TDD rules still apply.
+
+| Question | Answer |
+|---|---|
+| Why start at the boundary? | Boundary tests are inherently behavior-tests; leaf-utility tests are easy to make implementation-coupled. |
+| What if the boundary is huge? | The plan should have decomposed it. If it didn't, raise the gap before writing tests. |
+| Can I mock the layers below the boundary? | Only if the layer is genuinely external (network, filesystem, time). For internal layers, prefer real. |
+
+### Behavior, Not Implementation
+
+A test asserts on **observable outputs and state transitions**, never on internal call shapes.
+
+Forbidden assertion shapes (these test the implementation):
+- `expect(spy).toHaveBeenCalledTimes(N)` (interrogating call counts)
+- `expect(mock.foo).toHaveBeenCalledWith(...)` (interrogating arguments to internals)
+- Reaching into private fields or non-public methods
+- Snapshot-testing internal data structures the caller never sees
+
+Allowed exceptions: when the side effect *is* the contract. A test for "an email gets sent" must assert that `emailGateway.send` was called with the right address — that observable side effect *is* the behavior, not an implementation detail.
+
+The black-box test: if you refactor internals without changing the externally-observable result, **no test should break**. If one does, it was testing implementation.
+
+**Mutation thinking** — before accepting a green test, mentally mutate the source:
+- What if `+` became `-`? `<` became `<=`? `return result` became `return null`?
+- What if errors were swallowed instead of thrown?
+- What if the function returned the input unchanged?
+
+If the test still passes under any of those mutations, write another test. Tools that automate this (Stryker for JS/TS, PIT for Java, Mutmut for Python) are the gold-standard verifier — optional, but worth running when stakes are high.
+
+### Test Organization & Traceability
+
+Tests are structurally aligned with the architecture, not thrown into a global `/tests` folder.
+
+**Colocate** test files immediately adjacent to source unless the project convention says otherwise:
+```
+src/trading/order-book.ts
+src/trading/order-book.test.ts   ← same directory
+```
+This makes the source ↔ test link undeniable and lets `--findRelatedTests`-style tools work.
+
+**Name and group tests using canonical terms from `CONTEXT.md`** (your ubiquitous language glossary). If the canonical term is `Position`, the test file is `position.test.ts` and the top-level `describe` block is `describe('Position', ...)`. This means a domain-grep finds every test for a concept.
+
+**Tag tests by bounded context** so you can run "all tests for the trading context" without grep-fu:
+- Jest: `describe.each` with tag names; or filename convention (`*.trading.test.ts`)
+- Pytest: `@pytest.mark.trading`
+- Most runners support tag/marker filtering at the CLI
+
+**During iteration, run only related tests** — the iteration loop is for fast feedback, not for the completion gate:
+- Jest: `jest --findRelatedTests <changed-file>` or `jest --changedSince=main`
+- Pytest: `pytest -k <pattern>` or `pytest --picked` (plugin)
+- Nx monorepo: `nx affected:test`
+- Fallback: `git diff --name-only` piped into the runner
+
+**Before claiming completion, always run the full suite.** Related-tests is the iteration loop; the full suite is the verification gate (see `verification-before-completion`).
+
+### Layered Tests
+
+Most tests are **domain/unit tests** — pure logic, no I/O, milliseconds to run. They test invariants and state transitions of the domain model.
+
+A thin layer of **integration tests** sits above them — they hit real systems (DB, network, filesystem) and verify the seams between architectural layers. They are slow; keep them as smoke tests, not the main coverage.
+
+If you find yourself mocking five or more dependencies to test one function, the **design** is wrong, not the test. Extract the pure domain logic into a unit that can be tested directly, and leave the integration concerns to the integration layer.

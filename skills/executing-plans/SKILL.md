@@ -57,7 +57,10 @@ For each task:
 1. Mark as in_progress
 2. Follow each step exactly (plan has bite-sized steps)
 3. Run verifications as specified
-4. Mark as completed
+4. Write the Checkpoint Discipline summary (Done / Verified / Remaining)
+5. Mark as completed
+
+**TodoWrite vs Checkpoint Discipline are not the same thing.** TodoWrite tracks *which task* you are on; the Checkpoint summary records *what state the task left the codebase in*. Marking a TodoWrite item complete without writing the checkpoint is the failure this skill is designed to prevent — see Checkpoint Discipline above.
 
 ### Step 3: Complete Development
 
