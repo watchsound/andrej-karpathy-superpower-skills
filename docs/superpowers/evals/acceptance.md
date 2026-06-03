@@ -69,6 +69,21 @@ an absolute path, or say "pick one and propose it")?
 
 **Verdict:** PASS with caveats. Brainstorming fires correctly, HARD-GATE holds, checklist follows skill prescription. Three soft-misses are either ordering-appropriate (Walking Skeleton) or worth softening in the skill (order-disambiguation rule, Karpathy-rule-surfacing).
 
+**Run 1 continuation (purpose → tier → interaction → approach → design):**
+
+Across four subsequent turns, the agent:
+
+- Pinned purpose (Tier 2 educational, Python, scripted scenarios) one question at a time ✅
+- Surfaced a critical assumption (simulated clock vs wall-clock) inside a clarifying question — Karpathy Rule 1 firing behaviorally even when not cited ✅
+- Proposed three architectural approaches with tradeoffs and a recommendation ✅
+- Transitioned to design presentation by introducing "Section 1 — Module layout, core data model, OrderBook" — **and went straight into file tree + OrderBook data structure** ❌
+
+**Walking Skeleton trigger FAILED.** This is the Probe 1 critical-miss flagged in advance. The brainstorming skill's Walking Skeleton subsection sat at line ~34 of the skill, but the checklist step the agent executed ("Present design") at line ~76 didn't reference it. By the time the agent reached step 6, the subsection's guidance wasn't top-of-mind. Predicted weakness, materialized.
+
+**Fix applied (commit pending):** Pulled the Walking Skeleton trigger into the checklist step itself as a GREENFIELD GATE clause, and rewrote the subsection's trigger from "When the design is for a new system or service" (descriptive, soft) to "TRIGGER (no judgment call): apply this whenever the user's request describes a new system..." (directive, hard). Also added an unconditional "No data model, file layout, or component breakdown may be presented before the Walking Skeleton is presented and approved" — closes the specific path the agent took.
+
+**Probe 1 re-run required** in a fresh session to validate the fix. Until that happens, the Walking Skeleton checkbox stays unconfirmed.
+
 ---
 
 ## Probe 2 — Brownfield bug fix (Walking Skeleton must NOT fire)

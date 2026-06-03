@@ -33,7 +33,11 @@ Format reference: [references/context-format.md](references/context-format.md)
 
 ## Walking Skeleton (Greenfield Only)
 
-When the design is for a **new system or service** — not a feature added to an existing codebase — the first design deliverable is a **Walking Skeleton**: an end-to-end thin slice that proves the architecture is wired up before any business logic is designed.
+**TRIGGER (no judgment call):** apply this whenever the user's request describes a new system, service, project, library, codebase, or product that does not already exist on disk. Greenfield is determined by the artifact being designed, not by the chat context. A toy, a learning project, an MVP, a prototype — all qualify.
+
+**SKIP when:** modifying an existing codebase, fixing a bug, refactoring, or adding a feature to a system that already has files on disk. Those already have a skeleton — yours is whatever the codebase is today.
+
+When the trigger applies, the **first design deliverable** is a Walking Skeleton: an end-to-end thin slice that proves the architecture is wired up before any business logic is designed. **No data model, file layout, or component breakdown may be presented before the Walking Skeleton is presented and approved.**
 
 A Walking Skeleton:
 - Runs one happy-path request through every layer (UI → API → domain → persistence → response).
@@ -73,7 +77,7 @@ You MUST create a task for each of these items and complete them in order:
 3. **Offer visual companion** (if topic will involve visual questions) — this is its own message, not combined with a clarifying question. See the Visual Companion section below.
 4. **Ask clarifying questions** — one at a time, understand purpose/constraints/success criteria
 5. **Propose 2-3 approaches** — with trade-offs and your recommendation
-6. **Present design** — in sections scaled to their complexity, get user approval after each section
+6. **Present design** — in sections scaled to their complexity, get user approval after each section. **GREENFIELD GATE:** if the user's request describes a *new* system, service, project, library, codebase, or product that does not already exist on disk, **the first section MUST be a Walking Skeleton** (see Walking Skeleton subsection above). No data-model section, no component breakdown, no file layout until the end-to-end happy path with seams has been presented and approved. Skipping this step is a failure of the skill.
 7. **Write design doc** — save to `docs/superpowers/specs/YYYY-MM-DD-<topic>-design.md` and commit
 8. **Spec self-review** — quick inline check for placeholders, contradictions, ambiguity, scope (see below)
 9. **User reviews written spec** — ask user to review the spec file before proceeding
