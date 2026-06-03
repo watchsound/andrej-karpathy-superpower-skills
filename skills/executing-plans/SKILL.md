@@ -25,7 +25,15 @@ After each plan step, write a short checkpoint before moving to the next:
 
 If you cannot write the checkpoint in 4 lines, you are not at a checkpoint — stop and reconstruct your state before continuing. Never start step N+1 from a state you cannot recount to yourself.
 
-See also: `token-budget-discipline` for when to checkpoint mid-step.
+**Self-check before starting step N+1.** Ask yourself:
+
+- [ ] Did I write a Done/Verified/Remaining checkpoint for step N? If no, write it now.
+- [ ] Does *Verified* cite a command and its observed output, not just a claim? If no, re-run the verification.
+- [ ] Does *Remaining* match what the plan says is next? If no, the plan and your state disagree — stop and reconcile.
+
+If any box fails, do not advance. Cumulative drift across steps is the failure mode this exists to prevent.
+
+See also: `token-budget-discipline` for when to checkpoint mid-step. Plan execution is the canonical trigger for budget discipline — if a single step spends more than the per-task soft budget, checkpoint and consider restart rather than pushing through.
 
 ## Overview
 

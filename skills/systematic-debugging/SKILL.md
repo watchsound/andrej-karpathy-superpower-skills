@@ -12,6 +12,7 @@ While debugging, also apply:
 - **Surgical Changes** (Karpathy rule 3) — once the root cause is found, fix only that. Resist "while I'm here" cleanup of adjacent code.
 - **Goal-Driven Execution** (Karpathy rule 4) — reproduce the bug with a failing test before fixing; the test is the success criterion.
 - **Disambiguate before diagnosing** — if a bug report uses an ambiguous term, resolve it via `CONTEXT.md` before forming hypotheses; a wrong term equals a wrong diagnosis.
+- **Bound the loop** — long debugging sessions are the primary trigger for `token-budget-discipline`. If you've burned the per-task soft budget without a confirmed hypothesis, checkpoint your findings and restart with a focused question rather than thrashing.
 
 Full text: see the `karpathy-guidelines` skill.
 
