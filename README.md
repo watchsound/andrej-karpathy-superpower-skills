@@ -67,6 +67,8 @@ This turns invisible discipline (the four Karpathy rules) into a visible artifac
 
 ## Installation
 
+### Standard install (Claude Code with `/plugin` available)
+
 ```bash
 # Add the marketplace
 /plugin marketplace add watchsound/andrej-karpathy-superpower-skills
@@ -83,21 +85,50 @@ If the upstream `superpowers` plugin is already installed, **uninstall it first*
 
 Restart Claude Code so the SessionStart hook fires and `using-superpowers` bootstraps.
 
+### Alternative: junction/symlink install (environments without `/plugin`)
+
+Some Claude Code surfaces (e.g. older VSCode extension builds) don't expose `/plugin`. You can wire skills into the user-global skills directory directly. Skills auto-trigger from their description field even without the SessionStart hook.
+
+PowerShell (Windows, no admin required):
+
+```powershell
+$src = "<path-to-this-repo>\skills"
+$dst = "$env:USERPROFILE\.claude\skills"
+New-Item -ItemType Directory -Path $dst -Force | Out-Null
+Get-ChildItem $src -Directory | ForEach-Object {
+  New-Item -ItemType Junction -Path (Join-Path $dst $_.Name) -Target $_.FullName
+}
+```
+
+Bash (macOS/Linux):
+
+```bash
+mkdir -p ~/.claude/skills
+for d in <path-to-this-repo>/skills/*/; do
+  ln -s "$(cd "$d" && pwd)" ~/.claude/skills/$(basename "$d")
+done
+```
+
+To revert: delete `~/.claude/skills/` (junctions/symlinks delete cleanly without touching the source). What you lose vs the full plugin install: the SessionStart hook that bootstraps `using-superpowers`. Individual skills still auto-trigger via their description.
+
 ## Verification
 
 In a fresh session, send:
 
 > "Let's design a small order book for an A-share trading system."
 
-Expected behavior:
+What you should see (validated in eval runs — see [docs/superpowers/evals/acceptance.md](docs/superpowers/evals/acceptance.md)):
 
-- `brainstorming` fires (not direct code generation).
-- The Ubiquitous Language block surfaces — the agent looks for `CONTEXT.md` and proposes creating one if absent.
-- The agent asks to disambiguate "order" (trading order vs purchase order vs work order) before proposing any design.
-- The four Karpathy rules are surfaced as the lens for the rest of the conversation.
-- Because the order book is a greenfield system, the agent offers a **Walking Skeleton** as the first design deliverable — an end-to-end thin slice with no business logic, before any feature design.
+- `brainstorming` skill announces and fires — agent does *not* leap to code.
+- Agent globs for `CONTEXT.md` at repo root; if absent, offers lazy creation as terms get pinned down.
+- Agent disambiguates *within-domain* (matching engine vs broker OMS vs market-data reconstruction vs backtest) before proposing a design.
+- One-question-at-a-time clarifying flow with multiple-choice options and a recommendation.
+- Because the order book is a greenfield system, the agent offers a **Walking Skeleton** as the first design deliverable — end-to-end happy path, named seams as concrete interfaces, one acceptance test — before any data model or file layout.
+- Karpathy rules fire behaviorally (e.g. surfacing critical assumptions in the design itself), though the agent may not cite them by name. That's the current state, not a bug.
 
-If none of that happens, the plugin's SessionStart hook didn't fire — restart Claude Code or confirm `/plugin list` shows the fork.
+If `brainstorming` does not announce at all, the install didn't take. For the standard install: confirm `/plugin list` shows the fork. For the junction install: confirm `~/.claude/skills/brainstorming/SKILL.md` exists and is readable.
+
+For deeper validation across 7 probes covering 5 skills, see the [acceptance eval harness](docs/superpowers/evals/acceptance.md) — it includes the exact probe messages, expected behaviors, and recorded results from validation runs.
 
 ## Attribution
 
