@@ -86,6 +86,36 @@ Across four subsequent turns, the agent:
 
 ---
 
+### Run 2 (2026-06-03, after GREENFIELD GATE fix, fresh session)
+
+**Walking Skeleton fired correctly.** After 5 self-bounded clarifying questions (rule subset → location+language → rule tier → entry point → time model), the agent announced *"Now — Walking Skeleton first, per the greenfield rule"* and produced a complete skeleton matching all three skill requirements:
+
+- **Happy path:** 6 numbered steps from CLI invocation through trade output to file
+- **Seams:** `Clock` Protocol, `Order`/`Trade` dataclasses, `MatchingEngine` class signature with stubbed `submit`/`cancel`, CLI `main` signature — all concrete enough to compile
+- **Acceptance test:** `test_two_crossing_orders_produce_one_trade` with full pytest code and golden-file diff
+
+Bonus: explicit "what this skeleton deliberately does NOT have yet" list (auction phases, price limits, lot size, real book data structure, cancel logic, multi-symbol), each item annotated as plugging into an existing seam later. That's the skeleton concept understood at depth, not just surface-mimicked.
+
+Also notable:
+- Within-domain "order book" disambiguation (exchange-side vs broker OMS vs market-data reconstruction vs backtest) is *better* than the original Probe 1 expectation of generic-word disambiguation. Worth amending the probe spec.
+- Karpathy rule still not explicitly named as a lens. Soft-miss persists across both runs — content fires behaviorally but isn't cited.
+- Drag concern from Run 2 (5 clarifying questions) was self-bounded — no transition guard needed. The flagged Discovered Issue is downgraded.
+
+**Run 2 verdict: PASS, clean.** The fork's GREENFIELD GATE fix works end-to-end. This is the canonical example of the eval loop catching a real failure mode and a targeted fix validating cleanly in a fresh session.
+
+**Updated checkbox state:**
+
+- [x] `brainstorming` skill is invoked before any design content.
+- [x] Agent reads (or attempts to read) `CONTEXT.md` at repo root.
+- [x] Agent surfaces ambiguity on "order" — within-domain (matching engine vs broker OMS vs market-data vs backtest). Original spec said cross-domain (trading vs purchase vs work), but within-domain is more useful.
+- [x] Agent does NOT immediately propose a design. The `<HARD-GATE>` holds.
+- [x] Walking Skeleton is offered as the first design deliverable.
+- [ ] At least one Karpathy rule is surfaced as a lens for the session, not just listed. *Still missing — soft-miss.*
+
+5 of 6 boxes checked. The remaining miss (Karpathy rule naming) is content-quality, not behavior-shape — the rules fire behaviorally even when not cited.
+
+---
+
 ## Probe 2 — Brownfield bug fix (Walking Skeleton must NOT fire)
 
 Tests: `brainstorming` Walking Skeleton greenfield-only guard, `systematic-debugging` Iron Law.
