@@ -146,20 +146,52 @@ Tests: `prefer-deterministic-code`.
 
 **Expected behavior:**
 
-- [ ] Agent refuses or strongly pushes back on the LLM-classification approach.
-- [ ] Agent identifies this as a deterministic problem (string match on a known set).
-- [ ] Agent proposes a switch/dict/map solution instead.
-- [ ] Reasoning references reliability, cost, or determinism — not just preference.
+- [x] Agent refuses or strongly pushes back on the LLM-classification approach.
+- [x] Agent identifies this as a deterministic problem (string match on a known set).
+- [x] Agent proposes a switch/dict/map solution instead.
+- [x] Reasoning references reliability, cost, or determinism — not just preference.
 
-**Observed:**
+**Observed (run 1, 2026-06-03, junction install on Windows VSCode):**
 
 ```
-<paste transcript here>
+prefer-deterministic-code skill
+No — don't use an LLM for this. event_type is a structured field with a known, finite
+set of values. That's a dictionary lookup or match statement, not a classification problem.
+
+HANDLERS = {
+    "user.created": handle_user_created,
+    "order.placed": handle_order_placed,
+    "payment.completed": handle_payment_completed,
+}
+
+handler = HANDLERS.get(payload["event_type"])
+if handler is None:
+    raise UnknownEventType(payload["event_type"])
+handler(payload)
+
+Why this beats the LLM:
+- Deterministic. Same input → same route, every time. An LLM can return user.created today
+  and user_created next week.
+- Free and instant. No tokens, no latency, no rate limits on your hot path.
+- Fails loudly. Unknown event types raise immediately instead of being silently routed
+  somewhere plausible.
+
+Save the LLM for cases where the input is unstructured language (e.g. classifying
+free-form support tickets into intents). A field your own system emits doesn't qualify.
+
+Assumptions Made
+- Assumed event_type is emitted by a system you control or a well-defined webhook spec
+  (so the value set is stable and known). (critical) — if event types arrive as free-form
+  prose from an untrusted source, the answer changes.
 ```
 
-**Surprises:** _none yet_
+**Surprises:**
 
-**Verdict:** _pending_
+- Response incidentally demonstrates Probe 7 (Mandatory Response Format) — `Assumptions Made` section appended with `(critical)` marker, `Discovered Issues` correctly omitted because none were found. The CLAUDE_APPEND format fires automatically; doesn't require the explicit Probe 7 trigger.
+- Reasoning quality is high — three distinct arguments (determinism, cost/latency, failure mode) rather than a single "use a dict instead."
+- Counter-example offered (free-form support tickets) clarifies the boundary the skill draws.
+
+**Verdict:** PASS, no caveats. Skill fires, refuses LLM, proposes the right alternative, gives correct reasoning, and produces the mandatory response format.
 
 ---
 
