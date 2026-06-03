@@ -24,22 +24,50 @@ Tests: `brainstorming` (Karpathy Reinforcement, Ubiquitous Language, Walking Ske
 
 **Expected behavior:**
 
-- [ ] `brainstorming` skill is invoked before any design content. The agent announces it or the Skill tool call is visible.
-- [ ] Agent reads (or attempts to read) `CONTEXT.md` at repo root. If absent, it offers to create one rather than silently proceeding.
+- [x] `brainstorming` skill is invoked before any design content. The agent announces it or the Skill tool call is visible.
+- [x] Agent reads (or attempts to read) `CONTEXT.md` at repo root. If absent, it offers to create one rather than silently proceeding.
 - [ ] Agent surfaces ambiguity on "order" — explicitly proposes that the term could mean trading order vs purchase order vs work order and asks which is intended.
-- [ ] Agent does NOT immediately propose a design. The `<HARD-GATE>` holds.
+- [x] Agent does NOT immediately propose a design. The `<HARD-GATE>` holds.
 - [ ] Walking Skeleton is offered as the first design deliverable for this greenfield system, distinct from feature design.
 - [ ] At least one Karpathy rule (Think Before Coding or Goal-Driven Execution) is surfaced as a lens for the session, not just listed.
 
-**Observed:**
+**Observed (run 1, 2026-06-03, junction install on Windows VSCode):**
 
 ```
-<paste transcript here>
+brainstorming skill
+Globpattern: "CONTEXT*.md" → No files found
+Globpattern: "docs/superpowers/specs/*" → Found 5 files
+TodoWrite created with checklist: Explore project context, Read CONTEXT.md / glossary,
+Clarify purpose/scope, Clarify A-share feature set, Clarify language/runtime, Propose
+2-3 approaches, Present design sections, Write design doc, User reviews spec, Hand off
+to writing-plans.
+
+Quick context: we're in the superpowers skills repo, which is clearly not the right home
+for a trading system — so I'll assume this design will land in a separate project we'll
+create elsewhere. Confirm or redirect me when you reply.
+
+Before I ask about A-share specifics (price limits, call auction, T+1, tick rules, etc.),
+I need to pin down purpose — it determines every later tradeoff. Which of these best
+matches what you have in mind?
+
+A. Educational / learning artifact ...
+B. Backtest / simulation engine ...
+C. Research-grade matching engine prototype ...
+D. Production-aspiring low-latency core ...
+
+My recommendation, based on the word "small": A or B. C if you actually want it to reflect
+the A-share rulebook faithfully. Which one — and where should the project live (give me
+an absolute path, or say "pick one and propose it")?
 ```
 
-**Surprises:** _none yet_
+**Surprises:**
 
-**Verdict:** _pending_
+- Two `karpathy-guidelines` skills appeared in the available-skills list: the junctioned `karpathy-guidelines` and a pre-existing `andrej-karpathy-skills:karpathy-guidelines` from another plugin. Descriptions overlap; the model has to pick. Worth documenting and possibly renaming our fork's vendor to avoid collision.
+- Agent did not disambiguate "order" against non-trading senses. Defensible — within A-share context the term is unambiguous — but the skill's rule is unconditional ("when the user uses a fuzzy or overloaded term, stop and disambiguate"). The skill should either soften this to "fuzzy *in context*" or accept that domain-clear cases skip the rule.
+- Walking Skeleton not offered yet, but checklist suggests it will come after purpose is pinned — appropriate ordering, not a miss.
+- No Karpathy rule explicitly named as a lens. The behavior ("pin down purpose first") is *consistent with* Think Before Coding but does not cite it.
+
+**Verdict:** PASS with caveats. Brainstorming fires correctly, HARD-GATE holds, checklist follows skill prescription. Three soft-misses are either ordering-appropriate (Walking Skeleton) or worth softening in the skill (order-disambiguation rule, Karpathy-rule-surfacing).
 
 ---
 
