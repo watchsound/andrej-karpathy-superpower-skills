@@ -164,20 +164,43 @@ Tests: `test-driven-development` Test Quality Bar + Behavior-Not-Implementation.
 
 **Expected behavior:**
 
-- [ ] Agent identifies that the test is shallow: only one input/output pair, no test for the non-premium branch, no edge cases (zero, negative, very large).
-- [ ] Agent references the mutation-thinking idea: would the test still pass if `* 0.8` became `* 0.5` for non-premium? (It would — the non-premium branch isn't tested.)
-- [ ] Agent does NOT just say "looks good" or rewrite without explaining why.
-- [ ] Agent proposes at least one additional test that depends on a different input.
+- [x] Agent identifies that the test is shallow: only one input/output pair, no test for the non-premium branch, no edge cases (zero, negative, very large).
+- [x] Agent references the mutation-thinking idea: would the test still pass if `* 0.8` became `* 0.5` for non-premium? (It would — the non-premium branch isn't tested.)
+- [x] Agent does NOT just say "looks good" or rewrite without explaining why.
+- [x] Agent proposes at least one additional test that depends on a different input.
 
-**Observed:**
+**Observed (run 1, 2026-06-03, junction install on Windows VSCode):**
 
 ```
-<paste transcript here>
+No — it only covers one of two branches and no edge cases.
+
+Missing coverage:
+- isPremium: false — the entire non-discount path is untested. A bug like
+  return isPremium ? price : price * 0.8 (inverted) would still pass.
+- price: 0 — boundary.
+- Floating-point case like calculateDiscount(99.99, true) — .toBe() will fail on
+  79.992 vs the expected rounded value; reveals whether rounding is intended.
+- Negative price — is it allowed? The test doesn't say, and the function doesn't guard.
+
+Minimum I'd want:
+test('applies 20% discount for premium', ...) { expect(...100, true).toBe(80) }
+test('returns full price for non-premium', ...) { expect(...100, false).toBe(100) }
+test('handles zero', ...) { expect(...0, true).toBe(0) }
+
+The test name 'calculates discount' is also weak — name tests after the behavior
+being asserted, so a failure tells you what broke without reading the body.
 ```
 
-**Surprises:** _none yet_
+**Surprises:**
 
-**Verdict:** _pending_
+- No skill announcement ("test-driven-development skill") — unlike `brainstorming` and `prefer-deterministic-code` which both prefixed their responses. Suggests the skill auto-triggered silently, or the model produced TDD-shaped output from training without invocation.
+- Mutation example (`return isPremium ? price : price * 0.8 (inverted)`) is a near-direct application of the skill's own pattern (`+` becoming `-`, `<` becoming `<=`). Strong evidence the skill content shaped the response.
+- Agent went beyond the checklist: floating-point boundary, negative price validation, and a critique of the test *name* (matches "Good Tests" table in original tuned content).
+- All three new improvements appeared without the agent citing the skill explicitly.
+
+**Finding: description coverage gap.** The skill's description is *"Use when implementing any feature or bugfix, before writing implementation code."* A *review* question ("Is this test good enough?") doesn't match the trigger semantically, even though the skill body has a Test Quality Bar section explicitly designed for review. Consider broadening the description to include review use cases — e.g., "Use when implementing any feature or bugfix, or when reviewing existing tests for quality."
+
+**Verdict:** PASS on content quality. Soft-miss on announcement. The skill content fires behaviorally — the description trigger may not.
 
 ---
 
@@ -250,21 +273,51 @@ Tests: `writing-plans` Architecture Contracts First.
 
 **Expected behavior:**
 
-- [ ] `writing-plans` skill is invoked.
-- [ ] Task 1 in the plan defines the `RateLimiter` interface/type — no implementation.
-- [ ] Task 2 is a boundary test against that interface.
-- [ ] Implementation tasks come after the contract is fixed.
-- [ ] Storage backend is also contract-first (defined as an interface before any backend is implemented).
+- [x] `writing-plans` skill is invoked.
+- [~] Task 1 in the plan defines the `RateLimiter` interface/type — no implementation. *(Task 1 is project bootstrap; **Task 2** defines the contract. Defensible reordering.)*
+- [x] Task 2 is a boundary test against that interface. *(Task 4 — first behavioral test of `RateLimiter` through public surface using `ProgrammableStore` fake. The numbering shifted due to the bootstrap task.)*
+- [x] Implementation tasks come after the contract is fixed.
+- [x] Storage backend is also contract-first (defined as an interface before any backend is implemented). *(`Store` interface in Task 2 → `MemoryStore` impl not until Task 8.)*
 
-**Observed:**
+**Observed (run 1, 2026-06-03, junction install on Windows VSCode):**
 
 ```
-<paste transcript here>
+writing-plans skill
+
+[Surfaced 6 critical assumptions before writing — Karpathy Rule 1 firing per the
+skill's own Karpathy Reinforcement block. Mandatory Response Format used.]
+
+[After "go": wrote docs/superpowers/plans/2026-06-03-rate-limiter.md, 13 tasks,
+763 lines, no placeholders.]
+
+Task structure:
+1. Project bootstrap (package.json, tsconfig.json, vitest.config.ts)
+2. Define the contract (types.ts) — Store interface, StoreEntry, RateLimitResult,
+   LimiterOptions. Verified by tsc --noEmit only. No behavior.
+3. Test helper — ProgrammableStore (fake for unit tests)
+4. RateLimiter — shape RateLimitResult from store entry (first behavioral test +
+   minimal impl, against ProgrammableStore fake)
+5-7. More RateLimiter tests + impl (deny over limit, forwarding args, constructor
+   validation) — all against the fake store
+8-11. MemoryStore impl under TDD (seeds, increments, resets at boundary, per-key
+   isolation)
+12. Integration test — real RateLimiter + real MemoryStore end-to-end
+13. Barrel export
+
+Self-review confirmed spec coverage, type consistency, and arithmetic. Done
+criteria specifies observable success: typecheck PASS, npm test PASS with exact
+test counts per file, 13 commits, public surface limited to {RateLimiter,
+MemoryStore, four types}.
 ```
 
-**Surprises:** _none yet_
+**Surprises:**
 
-**Verdict:** _pending_
+- Plan exceeded expectations on depth: 763 lines, 13 tasks, every test paired with concrete code, every step with a runnable command and expected output. Zero placeholders. Self-review section matches the `writing-plans` Self-Review prescription exactly.
+- `Discovered Issues` correctly stated empty ("there is no existing code adjacent to this work — greenfield project bootstrap is Task 1 of the plan itself"). This is the CLAUDE_APPEND format's "omit if empty — never invent entries to fill them" rule firing correctly.
+- The plan uses a `ProgrammableStore` fake for the `RateLimiter` unit tests — that's the right call per `test-driven-development`'s "Only mock the layer if it is genuinely external" rule. `Store` is a defined seam, so a fake is appropriate at that boundary while the limiter itself runs as real code.
+- Task 1 is project bootstrap rather than the contract. The skill says "Task 1 defines the contract." Strictly a deviation; behaviorally the first non-prereq task (Task 2) IS the contract, so the spirit holds.
+
+**Verdict:** PASS. Five of five expected behaviors satisfied (one with a defensible Task-1 reordering). The plan is also a strong artifact in its own right — would survive a code review on the merits.
 
 ---
 
