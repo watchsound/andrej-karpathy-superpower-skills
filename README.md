@@ -115,6 +115,60 @@ done
 
 To revert: delete `~/.claude/skills/` (junctions/symlinks delete cleanly without touching the source). What you lose vs the full plugin install: the SessionStart hook that bootstraps `using-superpowers`. Individual skills still auto-trigger via their description.
 
+## Optional: CodeGraph integration
+
+The `bootstrap-project-context` skill prefers [CodeGraph](https://github.com/colbymchenry/codegraph) (MIT) as its brownfield structural-extraction backend. CodeGraph maintains a local file-watched SQLite-backed graph of nodes (symbols) and edges (calls, imports, references, framework routes) and exposes MCP tools that Claude Code can query directly — much cheaper than walking source with Explore subagents on a large repo. Per [codegraph's own benchmarks](https://github.com/colbymchenry/codegraph#benchmark-results) (7 real-world codebases, 7 languages, Claude Code Opus): **~16% cheaper, ~47% fewer tokens, ~22% faster, ~58% fewer tool calls** averaged across all runs.
+
+**CodeGraph is optional.** The bootstrap skill detects whether it's installed and falls back to Explore subagents when it isn't. Install only if you want the faster brownfield path.
+
+### 1. Install the CLI
+
+**Windows (PowerShell)** — downloads a self-contained bundle (vendored Node runtime, no Node.js prerequisite) into `%LOCALAPPDATA%\codegraph\current\` and adds it to your user PATH:
+
+```powershell
+irm https://raw.githubusercontent.com/colbymchenry/codegraph/main/install.ps1 | iex
+```
+
+**macOS / Linux:**
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/colbymchenry/codegraph/main/install.sh | sh
+```
+
+**Alternative** (any platform, requires Node 20+): `npm install -g @colbymchenry/codegraph`. The standalone installer is preferred — no Node dependency and easier upgrades via `codegraph upgrade`.
+
+**Restart your terminal** so the new PATH takes effect. Verify with `codegraph --help`.
+
+### 2. Wire CodeGraph into Claude Code
+
+```bash
+codegraph install
+```
+
+**This is the load-bearing step.** The CLI alone does NOT connect CodeGraph to Claude Code — `codegraph install` writes the MCP server config (auto-detecting other agents like Cursor / Codex / Gemini / opencode if present) and sets up auto-allow permissions for the MCP tools. **Restart Claude Code** after running so it loads the new MCP server.
+
+### 3. Initialize each project
+
+```bash
+cd <your project>
+codegraph init -i
+```
+
+`-i` builds the initial graph in the same step. This creates `.codegraph/codegraph.db` at the project root. From then on a native file watcher keeps the index fresh automatically — no manual `codegraph sync` needed in normal use.
+
+### How the bootstrap skill picks it up
+
+`bootstrap-project-context` Step 3b.0 checks for `.codegraph/codegraph.db` at the project root and pings the `codegraph_status` MCP tool. When both succeed, it routes to the CodeGraph-aware path (per-file query plans via `codegraph_search` / `codegraph_node` / `codegraph_callers` / `codegraph_callees` / `codegraph_impact`). When either check fails, it falls back to Explore subagents. **No skill configuration is needed** — install CodeGraph once, init per-project, and the skill takes the cheap path automatically.
+
+### Uninstall
+
+```bash
+codegraph uninstall    # strip MCP wiring from each configured agent
+codegraph uninit       # in a project: remove its .codegraph/ index
+```
+
+Then remove the binary by deleting the install directory (`%LOCALAPPDATA%\codegraph` on Windows; `~/.local/share/codegraph` or similar on macOS/Linux — `codegraph --help` reports its install dir) and dropping the `.../current/bin` entry from your user PATH.
+
 ## Verification
 
 In a fresh session, send:
