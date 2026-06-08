@@ -18,11 +18,13 @@ A second, independent failure mode motivated this fork: **bottom-up TDD can prod
 
 ## What's Added
 
-### Three new skills
+### Five new skills
 
 - **`karpathy-guidelines`** — verbatim vendor of forrestchang's 4-rule CLAUDE.md (MIT). Loads on demand so the full rule text is available to any skill that cross-references it.
 - **`prefer-deterministic-code`** — refuses to wrap an LLM call around a question with a deterministic answer (routing, retries, status codes, validation, type checks). Reserves LLM calls for unstructured language work only.
 - **`token-budget-discipline`** — explicit per-task and per-session budgets with checkpoint-and-restart discipline, to bound agent loops that would otherwise spend themselves into a 50K-token context dump.
+- **`surfacing-assumptions`** — front-loads the *Assumptions Made* discipline. Gates Edit/Write/mutating Bash until each assumption is discharged by cited evidence (file:line, command output, grep hit, or explicit user confirmation). Targets the "wrong assumptions, run along with them" failure mode at its source, before code is shaped.
+- **`verifying-assumptions`** — evidence-based post-hoc verification of the `Assumptions Made` block. Produces per-assumption verdicts (validated / refuted / unverifiable) with cited evidence. Bounded escalation: one same-procedure redo, then one higher-context **Reframe Pass** (which must inject *different signal* — re-anchored intent, expanded read set, fresh-context subagent, or restated question), then escalate to the user.
 
 ### Karpathy Reinforcement across existing skills (13)
 
@@ -63,7 +65,7 @@ A short add-on for your project-level or user-global `CLAUDE.md` that introduces
 - `Discovered Issues` — bugs and risks noticed in adjacent code, listed (not fixed) so they can be triaged.
 - `Assumptions Made` — every assumption taken to proceed, with `(critical)` markers on the load-bearing ones.
 
-This turns invisible discipline (the four Karpathy rules) into a visible artifact at the end of every response.
+This turns invisible discipline (the four Karpathy rules) into a visible artifact at the end of every response. The new `surfacing-assumptions` and `verifying-assumptions` skills are the operational mechanism that makes those two sections accurate — at the front-end (before code is written) and at the back-end (when verifying a written block).
 
 ## Installation
 
