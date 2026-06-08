@@ -1,6 +1,6 @@
 ---
 name: bootstrap-project-context
-description: Use ONCE per project to generate the three project-context files (CONTEXT.md, state_machines.md, data_flow.md) that the maintenance skills will keep current. Two modes — greenfield (compose from the brainstorming / Walking-Skeleton design conversation) and brownfield (Explore-subagent mines the existing source). Skip if all three files already exist. Files become load-bearing after this skill runs; the maintenance-discipline skills enforce updates against them.
+description: Use ONCE per project to generate the three project-context files (CONTEXT.md, state_machines.md, data_flow.md) that the maintenance skills will keep current. Two modes — greenfield (compose from the brainstorming / Walking-Skeleton design conversation) and brownfield (mines existing source via the CodeGraph index when available, Explore subagents as fallback). Skip if all three files already exist. Files become load-bearing after this skill runs; the maintenance-discipline skills enforce updates against them.
 ---
 
 # Bootstrap Project Context
@@ -52,13 +52,67 @@ After composing, present the three files to your human partner for review **BEFO
 
 ### Step 3b — Brownfield mode
 
+Brownfield mode mines an existing codebase to back-fill the three files. It has two backends: **CodeGraph** (preferred when available — dramatically cheaper for the structural-extraction phase) and **Explore subagents** (fallback when CodeGraph is not present). The domain-semantic synthesis step is identical in both paths — only the structural extraction differs.
+
+#### Step 3b.0 — Detect whether CodeGraph is available
+
+CodeGraph (`@colbymchenry/codegraph`, MIT — local-first code-intelligence index) pre-extracts the structural graph this skill needs. Querying it is roughly 5–10× cheaper than asking Explore subagents to walk the source from scratch, because the structural extraction is already done and continuously kept fresh by a file watcher.
+
+Detection (run both checks):
+
+1. `.codegraph/codegraph.db` exists at project root → CodeGraph is indexed for this project
+2. `codegraph_status` MCP tool responds → CodeGraph is reachable
+
+| Result | Branch |
+|---|---|
+| Both true | Step 3b.1 — CodeGraph-aware path |
+| Reachable but not yet indexed for this project | Offer `codegraph init` to your human partner, wait for the first scan, then Step 3b.1 |
+| Either check fails (not installed, MCP not reachable, persistent failure) | Step 3b.2 — Explore-subagent path |
+
+Do NOT install CodeGraph unilaterally. If it is not present, fall back to Explore subagents. CodeGraph is an *optimization*, not a *dependency* — this skill must work without it.
+
+#### Step 3b.1 — CodeGraph-aware path (preferred when available)
+
+CodeGraph supplies the structural extraction; you supply the domain-semantic synthesis. Per-file query plans:
+
+**For `CONTEXT.md` (glossary):**
+
+1. `codegraph_search(filter: { is_exported: true, kind: [class, interface, type, enum, function] })` — enumerate domain-y exported symbols
+2. For each candidate: `codegraph_node(id)` → name, qualified_name, docstring, signature, visibility
+3. Filter out generic-pattern names (`Helper`, `Manager`, `Processor`, `Util`, `Service[Impl]`, etc.) — these are infrastructure scaffolding, not domain language
+4. For each remaining symbol: compose a one-sentence definition + `_Avoid_` variants per the canonical CONTEXT format. Flag `<!-- needs-confirmation: <reason> -->` when meaning had to be inferred from the name alone
+5. Append `<!-- source: <file:line> -->` from the node's location data
+
+**For `state_machines.md` (lifecycles):**
+
+1. `codegraph_search(name_pattern: "*Status|*State|*Phase|*Kind", kind: [enum, type])` — find state-bearing types
+2. For each: `codegraph_callers(id)` to identify code paths that read the field; `codegraph_callees(id)` on mutation functions to trace what happens after a state assignment
+3. **Read the actual mutation code paths CodeGraph surfaced** — this is where graph data ends and procedural understanding begins. The graph tells you *which* fields are state and *who* mutates them; you must read the code to reconstruct *what transitions exist* and *what guards them*.
+4. Compose state-machine entries per the format in the "Output format" section below; flag inferred guards with `<!-- needs-confirmation -->`
+
+**For `data_flow.md` (data movement):**
+
+This is where CodeGraph offers the largest leverage — its 14 framework resolvers (Django, FastAPI, Express, NestJS, Laravel, Rails, Gin, Spring, etc.) already synthesize route / handler / consumer edges as first-class nodes.
+
+1. `codegraph_search(kind: route)` — all HTTP endpoints, GraphQL resolvers, message consumers, CLI entry points that CodeGraph recognized
+2. For each entry point: `codegraph_callees(id, depth: 5)` → reach the data sinks (DB writes, file IO, message emits, response writes)
+3. `codegraph_impact(id)` → transitive radius for cross-component flows
+4. For each entry point, compose one flow entry: source → transformations → sink + shape at each step
+5. Cross-language bridges (Swift↔ObjC, React Native legacy/Fabric, Expo Modules) are already marked `provenance: heuristic` in CodeGraph — surface them with `<!-- needs-confirmation -->` since they were inferred, not read directly
+
+**Coverage gap detection.** If `codegraph_status` reports a low edge count for a project that visibly has many files, or if your queries return few routes for a project that obviously has HTTP endpoints, CodeGraph may have under-indexed (custom framework, embedded DSL, in-house messaging library, generated code). In that case, **supplement** the CodeGraph queries with targeted Explore-subagent passes for the under-covered area — do not silently accept incomplete data.
+
+#### Step 3b.2 — Explore-subagent path (fallback when CodeGraph is unavailable)
+
 Launch `Explore` subagents (parallel if the codebase is large — use `dispatching-parallel-agents`) to mine each file from source:
 
 - **`CONTEXT.md`** — walk exported types / classes / interfaces / functions with domain-y names. For each, extract the most likely user-facing meaning from docstrings, type annotations, and call sites. Flag with `[needs-confirmation]` any term whose meaning had to be **inferred** rather than read directly.
 - **`state_machines.md`** — for each entity that has a state-like field (`status`, `state`, `phase`, `step`, `kind`), enumerate observed values and find the code paths that mutate them. Reconstruct transitions and guards. Flag inferred guards with `[needs-confirmation]`.
 - **`data_flow.md`** — trace inputs (HTTP endpoints, message consumers, file readers, CLI args) → transformations → outputs (responses, emits, file writers). For **typed** projects, the type system gives the boundary shapes for free. For **untyped** projects (loose Python, JS without TS, shell pipelines), follow function calls and record the inferred shape at each boundary, flagged. Untyped projects need this file MORE than typed projects, because the type system is not doing the work for you.
 
-After subagent reports come back, compose the three files. Present to your human partner with all `[needs-confirmation]` items explicitly listed BEFORE writing to disk.
+#### After Step 3b.1 or 3b.2
+
+Compose the three files from the data gathered. Present to your human partner with all `[needs-confirmation]` items explicitly listed BEFORE writing to disk.
 
 ### Step 4 — User review gate
 
@@ -165,7 +219,7 @@ For terms inferred from domain conversation rather than read directly from code,
 |---|---|
 | "User will fix it later" | They won't — they'll trust the file, act on it, and regret it |
 | "It's just a draft" | A draft on disk is a load-bearing fact to every future session |
-| "The codebase is too large to mine thoroughly" | Use parallel Explore subagents via `dispatching-parallel-agents`. Better to do it right once than rewrite after drift compounds. |
+| "The codebase is too large to mine thoroughly" | Use CodeGraph if installed (designed for exactly this scale problem). Otherwise use parallel Explore subagents via `dispatching-parallel-agents`. Better to do it right once than rewrite after drift compounds. |
 | "Brainstorming already covered all this" | Brainstorming covered design intent. The files are persistent canonical artifacts; the design conversation is ephemeral. Persist explicitly. |
 | "We can always regenerate from code" | Regeneration loses the disambiguations and inferred meanings your human partner has already made. The point of persistence is to preserve those decisions. |
 
