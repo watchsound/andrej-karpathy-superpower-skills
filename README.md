@@ -167,7 +167,11 @@ codegraph uninstall    # strip MCP wiring from each configured agent
 codegraph uninit       # in a project: remove its .codegraph/ index
 ```
 
-Then remove the binary by deleting the install directory (`%LOCALAPPDATA%\codegraph` on Windows; `~/.local/share/codegraph` or similar on macOS/Linux — `codegraph --help` reports its install dir) and dropping the `.../current/bin` entry from your user PATH.
+Then remove the binary. **Windows:** delete `%LOCALAPPDATA%\codegraph` and drop the `...\current\bin` entry from your user PATH. **macOS/Linux:** the installer ships an `--uninstall` flag that handles both the bundle (`~/.codegraph`) and the launcher symlink (`~/.local/bin/codegraph`) in one shot:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/colbymchenry/codegraph/main/install.sh | sh -s -- --uninstall
+```
 
 ## Verification
 
