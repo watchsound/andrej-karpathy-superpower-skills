@@ -18,13 +18,15 @@ A second, independent failure mode motivated this fork: **bottom-up TDD can prod
 
 ## What's Added
 
-### Five new skills
+### Seven new skills
 
 - **`karpathy-guidelines`** — verbatim vendor of forrestchang's 4-rule CLAUDE.md (MIT). Loads on demand so the full rule text is available to any skill that cross-references it.
 - **`prefer-deterministic-code`** — refuses to wrap an LLM call around a question with a deterministic answer (routing, retries, status codes, validation, type checks). Reserves LLM calls for unstructured language work only.
 - **`token-budget-discipline`** — explicit per-task and per-session budgets with checkpoint-and-restart discipline, to bound agent loops that would otherwise spend themselves into a 50K-token context dump.
 - **`surfacing-assumptions`** — front-loads the *Assumptions Made* discipline. Gates Edit/Write/mutating Bash until each assumption is discharged by cited evidence (file:line, command output, grep hit, or explicit user confirmation). Targets the "wrong assumptions, run along with them" failure mode at its source, before code is shaped.
 - **`verifying-assumptions`** — evidence-based post-hoc verification of the `Assumptions Made` block. Produces per-assumption verdicts (validated / refuted / unverifiable) with cited evidence. Bounded escalation: one same-procedure redo, then one higher-context **Reframe Pass** (which must inject *different signal* — re-anchored intent, expanded read set, fresh-context subagent, or restated question), then escalate to the user.
+- **`bootstrap-project-context`** — generates the three project-context files (`CONTEXT.md` glossary / `state_machines.md` lifecycles / `data_flow.md` data movement) once per project. Two modes: greenfield composes from the design conversation; brownfield mines existing source. **Uses [CodeGraph](https://github.com/colbymchenry/codegraph) as the structural-extraction backend when installed and indexed** (roughly 5–10× cheaper than walking source with Explore subagents, because CodeGraph already maintains a live SQLite-backed graph of nodes + edges with framework-aware resolvers); falls back to Explore subagents otherwise. HARD-GATE requires user review before any file is written to disk. Uses brainstorming's canonical `CONTEXT.md` format (no parallel format invented); brownfield traceability preserved via HTML-comment annotations.
+- **`maintaining-project-context`** — enforces lockstep updates between code edits and the three context files. Classifies each edit against three categories (domain concept → `CONTEXT.md`; state transition → `state_machines.md`; data movement → `data_flow.md`) and gates task completion on whether the relevant file was updated *in the same change*. Multi-context aware (updates the bounded-context `CONTEXT.md`, not the root). Untyped projects (loose Python / JS-without-TS / shell) get a lower-bar classification with active exemption rather than silent skip — because the type system is not doing the filtering work for them. Graceful fallback when `bootstrap-project-context` is not installed: escalates to the user rather than silently bypassing the gate.
 
 ### Karpathy Reinforcement across existing skills (13)
 
@@ -65,7 +67,7 @@ A short add-on for your project-level or user-global `CLAUDE.md` that introduces
 - `Discovered Issues` — bugs and risks noticed in adjacent code, listed (not fixed) so they can be triaged.
 - `Assumptions Made` — every assumption taken to proceed, with `(critical)` markers on the load-bearing ones.
 
-This turns invisible discipline (the four Karpathy rules) into a visible artifact at the end of every response. The new `surfacing-assumptions` and `verifying-assumptions` skills are the operational mechanism that makes those two sections accurate — at the front-end (before code is written) and at the back-end (when verifying a written block).
+This turns invisible discipline (the four Karpathy rules) into a visible artifact at the end of every response. The new `surfacing-assumptions` and `verifying-assumptions` skills are the operational mechanism that makes those two sections accurate — at the front-end (before code is written) and at the back-end (when verifying a written block). The `bootstrap-project-context` and `maintaining-project-context` skills extend the same discipline to the project level: they establish and maintain the bigger-picture artifact (glossary + lifecycles + flows) that prevents the agent from getting trapped in narrow reasoning paths during long sessions.
 
 ## Installation
 
