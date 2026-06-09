@@ -113,6 +113,18 @@ for d in <path-to-this-repo>/skills/*/; do
 done
 ```
 
+**Idempotent re-sync after `git pull`.** The repo ships [`sync-skills.ps1`](./sync-skills.ps1) (Windows) and [`sync-skills.sh`](./sync-skills.sh) (macOS/Linux) at the root that do the same junction/symlink creation as above, but only for skills that don't already have a link. Run after every `git pull` to pick up new skills as the fork evolves; existing links are left untouched.
+
+```powershell
+# Windows
+pwsh ./sync-skills.ps1
+```
+
+```bash
+# macOS / Linux
+bash ./sync-skills.sh
+```
+
 To revert: delete `~/.claude/skills/` (junctions/symlinks delete cleanly without touching the source). What you lose vs the full plugin install: the SessionStart hook that bootstraps `using-superpowers`. Individual skills still auto-trigger via their description.
 
 ## Optional: CodeGraph integration
