@@ -81,13 +81,13 @@ This turns invisible discipline (the four Karpathy rules) into a visible artifac
 /plugin install superpowers@superpowers-dev
 ```
 
-If the upstream `superpowers` plugin is already installed, **uninstall it first** to avoid duplicate auto-trigger conflicts:
+> **Important: if you already have the upstream `obra/superpowers` plugin installed, uninstall it before installing this fork.** Both plugins ship the same skill names. Without uninstalling, every skill auto-triggers twice — once from each plugin — producing spurious double-invocations and confusing behavior. This is the single most common install mistake.
 
 ```bash
 /plugin uninstall superpowers
 ```
 
-Restart Claude Code so the SessionStart hook fires and `using-superpowers` bootstraps.
+Then restart Claude Code so the SessionStart hook from this fork fires and `using-superpowers` bootstraps.
 
 ### Alternative: junction/symlink install (environments without `/plugin`)
 
@@ -201,6 +201,12 @@ What you should see (validated in eval runs — see [docs/superpowers/evals/acce
 - Karpathy rules fire behaviorally (e.g. surfacing critical assumptions in the design itself), though the agent may not cite them by name. That's the current state, not a bug.
 
 If `brainstorming` does not announce at all, the install didn't take. For the standard install: confirm `/plugin list` shows the fork. For the junction install: confirm `~/.claude/skills/brainstorming/SKILL.md` exists and is readable.
+
+**If you also installed CodeGraph** (per the *Optional: CodeGraph integration* section above), verify the MCP server is reachable from Claude Code by sending:
+
+> *"Use codegraph to show me which files are indexed in this project."*
+
+The agent should invoke `codegraph_files` or `codegraph_status` (visible in the tool-call trace) rather than falling back to `Glob` or Explore subagents. If it does fall back, the MCP wiring did not take — run `codegraph install` again and restart Claude Code. The `bootstrap-project-context` skill's CodeGraph-aware brownfield path only activates when this probe succeeds.
 
 For deeper validation across 7 probes covering 5 skills, see the [acceptance eval harness](docs/superpowers/evals/acceptance.md) — it includes the exact probe messages, expected behaviors, and recorded results from validation runs.
 
